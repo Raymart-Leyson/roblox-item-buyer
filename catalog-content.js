@@ -19,7 +19,17 @@ function createExtensionBuyButton() {
           chrome.storage.local.get(["savedText"], function (result) {
             const savedLink = result.savedText?.trim();
             if (savedLink && savedLink.startsWith("http")) {
-              chrome.runtime.sendMessage({ action: "openTab", url: savedLink });
+              // Open new tab with saved link
+              chrome.runtime.sendMessage({ action: "openTab", url: savedLink }, (response) => {
+                // After opening new tab, try to click play button on current page
+                if (typeof clickPlayButton === "function") {
+                  if (clickPlayButton()) {
+                    console.log("Play button clicked after opening saved link.");
+                  } else {
+                    console.warn("Play button not found after opening saved link.");
+                  }
+                }
+              });
             } else {
               alert("❌ Saved link is missing or invalid.");
             }
@@ -61,13 +71,11 @@ function observePageChanges() {
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      // Check if any added nodes include the target container
       for (const node of mutation.addedNodes) {
         if (node.nodeType === 1) { // ELEMENT_NODE
-          // If the node or its descendants contain the container, inject the button
           if (
-            node.matches && node.matches(".price-info.row-content") ||
-            node.querySelector && node.querySelector(".price-info.row-content")
+            (node.matches && node.matches(".price-info.row-content")) ||
+            (node.querySelector && node.querySelector(".price-info.row-content"))
           ) {
             injectExtensionBuyButton();
           }
