@@ -21,14 +21,15 @@ function createExtensionBuyButton() {
             if (savedLink && savedLink.startsWith("http")) {
               // Open new tab with saved link
               chrome.runtime.sendMessage({ action: "openTab", url: savedLink }, (response) => {
-                // After opening new tab, try to click play button on current page
-                if (typeof clickPlayButton === "function") {
-                  if (clickPlayButton()) {
-                    console.log("Play button clicked after opening saved link.");
-                  } else {
-                    console.warn("Play button not found after opening saved link.");
+                setTimeout(() => {
+                  if (typeof clickPlayButton === "function") {
+                    if (clickPlayButton()) {
+                      console.log("Play button clicked after opening saved link.");
+                    } else {
+                      console.warn("Play button not found after opening saved link.");
+                    }
                   }
-                }
+                }, 3000); // wait 3 seconds for page to load
               });
             } else {
               alert("❌ Saved link is missing or invalid.");
